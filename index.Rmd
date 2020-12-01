@@ -1,0 +1,411 @@
+---
+pagetitle: Regression with a binary dependent variable
+output: 
+  revealjs::revealjs_presentation:
+    incremental: false
+    theme: solarized
+    self_contained: false
+    # reveal_plugins: ["menu","notes","chalkboard"]
+    reveal_plugins: ["menu"]
+    highlight: pygments
+    center: true
+    transition: none
+    background_transition: none 
+    reveal_options:
+      # chalkboard:
+      #   theme: whiteboard
+      #   toggleNotesButton: true
+      #   toggleChalkboardButton: true
+      menu:
+        numbers: true
+      slideNumber: true
+      previewLinks: false
+    fig_caption: true
+    pandoc_args:
+    - --indented-code-classes
+    - lineNumbers
+    css: mystyle.css
+    
+--- 
+
+<section>
+
+<h1>Regression with a binary dependent variable</h1>
+
+Based on Stock and Watson, ch. 11
+
+<br>
+
+<h2>[Jesper Bagger](mailto:jesper.bagger@rhul.ac.uk)</h2>
+
+<h3>EC3133 | Royal Holloway | 2020/21</h3>
+
+</section>
+
+```{r results='asis', echo=FALSE, include=FALSE}
+library(AER) # Include library Applied Econometrics with R package
+library(parameters) # Include parameters library for robust SEs
+library(plotly) # Include library plotly for 3D plots
+data(HMDA) # Load HMDA data from AER library
+```
+
+## Outline
+
+1. Regression with a binary dependent variable
+
+2. The Maximum Likelihood estimator
+
+3. Estimation of probit and logit models in R
+
+4. Predicted probabilities and effects
+
+5. Measures of fit for probit and logit regressions
+
+# Regression with a binary dependent variable
+
+## Mortgage application denial and payment-to-income ratio
+
+```{r, echo=FALSE, eval=TRUE, error=FALSE, warning=FALSE}
+HMDA$deny <- as.numeric(HMDA$deny) - 1
+plot(HMDA$pirat,HMDA$deny,     
+     xlab = "Payment-to-income ratio", # Label x-axis
+     ylab = "Mortgage application denial", # Label y-axis
+     col = "blue", # Make the data points blue
+     xlim = c(0, 3), # Range of x-values in plot
+     ylim = c(-0.4, 1.4)) # Range of y-values in plot
+# add horizontal dashed lines and text
+abline(h = 1, lty = 2, col = "gray")
+abline(h = 0, lty = 2, col = "gray")
+text(2.5, 0.9, cex = 0.8, "Mortgage denied")
+text(2.5, -0.1, cex= 0.8, "Mortgage approved")
+```
+
+## A probability model
+
+- Suppuse $deny_i$ is a binary variable:
+
+  $$deny_i = \left\{ 
+             \begin{array}{ll}
+             1 & \text{ if application denied,} \\
+             0 & \text{ if application approved,}
+             \end{array}
+             \right.$$
+             
+  and let $pirat_i$ be the payment-to-income ratio.
+             
+- The expectation on $deny_i$ is a probability 
+
+  $$\mathrm{E}(deny_i|pirat_i) = \Pr(deny_i = 1|pirat_i)$$
+  
+- Different regression functions gives rise to different models of $\Pr(deny_i = 1|pirat_i)$
+
+## The linear probability model
+
+$$\Pr(deny_i = 1|pirat_i) = \beta_0 + \beta_1 pirat_i$$
+
+```{r, echo=FALSE, eval=TRUE, error=FALSE, warning=FALSE}
+# Linear probability model
+lm1 <- lm(deny ~ pirat, data = HMDA)
+plot(HMDA$pirat,HMDA$deny,     
+     xlab = "Payment-to-income ratio", # Label x-axis
+     ylab = "Mortgage application denial", # Label y-axis
+     col = "blue", # Make the data points blue
+     xlim = c(0, 3), # Range of x-values in plot
+     ylim = c(-0.4, 1.4)) # Range of y-values in plot
+# add horizontal dashed lines and text
+abline(h = 1, lty = 2, col = "gray")
+abline(h = 0, lty = 2, col = "gray")
+text(2.5, 0.9, cex = 0.8, "Mortgage denied")
+text(2.5, -0.1, cex= 0.8, "Mortgage approved")
+# Add regression line from linear probability model
+abline(lm1,
+       lwd = 3,
+       col = "blue")
+```
+
+## The probit model
+
+$$\Pr(deny_i = 1|pirat_i) = \Phi(\beta_0 + \beta_1 pirat_i)$$
+
+```{r, echo=FALSE, eval=TRUE, error=FALSE, warning=FALSE}
+# Probit regression
+probit <- glm(deny ~ pirat, 
+                     family = binomial(link = "probit"), 
+                     data = HMDA)
+
+plot(HMDA$pirat,HMDA$deny,     
+     xlab = "Payment-to-income ratio", # Label x-axis
+     ylab = "Mortgage application denial", # Label y-axis
+     col = "blue", # Make the data points blue
+     xlim = c(0, 3), # Range of x-values in plot
+     ylim = c(-0.4, 1.4)) # Range of y-values in plot
+# add horizontal dashed lines and text
+abline(h = 1, lty = 2, col = "gray")
+abline(h = 0, lty = 2, col = "gray")
+text(2.5, 0.9, cex = 0.8, "Mortgage denied")
+text(2.5, -0.1, cex= 0.8, "Mortgage approved")
+# Add regression line from linear probability model
+abline(lm1,
+       lwd = 3,
+       col = "blue")
+# Add regression line from probit model
+x <- seq(0, 3, 0.01)
+y.probit <- predict(probit, list(pirat = x), type = "response")
+lines(x, y.probit, lwd = 3, col = "red")
+```
+
+## The logit model
+
+$$\Pr(deny_i = 1|pirat_i) = \Lambda(\beta_0 + \beta_1 pirat_i)$$
+
+```{r, echo=FALSE, eval=TRUE, error=FALSE, warning=FALSE}
+# Logit regression
+logit <- glm(deny ~ pirat, 
+                     family = binomial(link = "logit"), 
+                     data = HMDA)
+
+plot(HMDA$pirat,HMDA$deny,     
+     xlab = "Payment-to-income ratio", # Label x-axis
+     ylab = "Mortgage application denial", # Label y-axis
+     col = "blue", # Make the data points blue
+     xlim = c(0, 3), # Range of x-values in plot
+     ylim = c(-0.4, 1.4)) # Range of y-values in plot
+# add horizontal dashed lines and text
+abline(h = 1, lty = 2, col = "gray")
+abline(h = 0, lty = 2, col = "gray")
+text(2.5, 0.9, cex = 0.8, "Mortgage denied")
+text(2.5, -0.1, cex= 0.8, "Mortgage approved")
+# Add regression line from linear probability model
+abline(lm1,
+       lwd = 3,
+       col = "blue")
+# Add regression line from probit model
+x <- seq(0, 3, 0.01)
+y.probit <- predict(probit, list(pirat = x), type = "response")
+lines(x, y.probit, lwd = 3, col = "red")
+# Add regression line from probit model
+y.logit <- predict(logit, list(pirat = x), type = "response")
+lines(x, y.logit, lwd = 3, col = "green")
+```
+
+## Nonlinear regression models
+
+- The probit and logit regression models are examples of **nonlinear regression models**
+
+- Effect on $\Pr(deny_i = 1|pirat_i)$ from $pirat_i$-change by $\Delta$:
+
+  \begin{multline*}
+  \Pr(deny_i = 1|pirat_i + \Delta) - \Pr(deny_i = 1|pirat_i) \\
+  = \Phi(\beta_0 + \beta_1 [pirat_i + \Delta]) - \Phi(\beta_0 + \beta_1 pirat_i)
+  \end{multline*}
+
+- OLS is no longer applicable; instead, rely on **Nonlinear Least Squares** or **Maximum Likelihood estimation**
+
+# The Maximum Likelihood estimator
+
+## The probit likelihood function
+
+$$\Pr(deny_i = 1|pirat_i) = \Phi(\beta_0 + \beta_1 pirat_i)$$
+
+- What is the probability of obtaining the actual sample with $n$ observations, $(deny_i,pirat_i;i=1,\ldots,n)$?
+
+  $$\prod_{i=1}^n \Phi(\beta_0 + \beta_1 pirat_i)^{deny_i} \left[1-\Phi(\beta_0 + \beta_1 pirat_i)\right]^{1-deny_i}$$
+  
+- Different values of $\beta_0$ and $\beta_1$ give different probabilities of obtaining the sample that was actually obtained
+
+- Call the probability of obtaining the actual sample as a function of $\beta_0$ and $\beta_1$ the **likelihood function**
+
+- Logit likelihood function obtains by replacing $\Phi(\cdot)$ by $\Lambda(\cdot)$
+
+## The Maximum Likelihood estimators of $\beta_0$ and $\beta_1$
+
+- The Maximum Likelihood estimators (MLEs) of $\beta_0$ and $\beta_1$, called $\hat{\beta}_{0,ML}$ and $\hat{\beta}_{1,ML}$, maximizes the likelihood function
+
+- Hence, $\hat{\beta}_{0,ML}$ and $\hat{\beta}_{1,ML}$ are the coefficient values "most likely" to have produced the sample! 
+
+- Maximization of the (log-)likelihood function by sophisticated numerical optimization routines
+
+
+## The probit log-likelihood function
+
+```{r echo=FALSE, error=FALSE, warning=FALSE, out.width = "100%"}
+# Probit log-likelihood function
+lik.fct <- function(b0,b1){
+            sum(log(pnorm(b0+b1*HMDA$pirat)^HMDA$deny*(1-pnorm(b0+b1*HMDA$pirat))^(1-HMDA$deny)))
+}
+b0 <- seq(-2.3, -2, length= 20)
+b1 <- seq(2.8, 3.2, length= 20)
+ll <- outer(b0, b1)
+for(i in 1:20) {
+  for(j in 1:20) {
+    ll[i,j] <- lik.fct(b0[i],b1[j])
+  }
+}
+# volcano is a numeric matrix that ships with R
+fig <- plot_ly(z = ~ll, x= b0, y=b1) %>% add_surface(
+  contours = list(
+    z = list(
+      show=TRUE,
+      usecolormap=TRUE,
+      highlightcolor="#ff0000",
+      project=list(z=TRUE)
+      )
+    )
+  )
+fig <- fig %>% layout(
+    scene = list(
+      camera=list(
+        eye = list(x=1.87, y=0.88, z=-0.64)
+        )
+      )
+  )
+fig <- fig %>% layout(
+  scene=list(
+    xaxis=list(title='Intercept, beta_0'),
+    yaxis=list(title='Slope, beta_1'),
+    zaxis=list(title='Log-likelihood')))
+fig
+#persp(b0, b1, ll)
+```
+
+## Statistical inference based on MLE
+
+- The MLEs of $\beta_0$ and $\beta_1$ are consistent and asymptotically normal if the probability model is correctly specified; in particular if it includes **all** relevant regressors, 
+
+- Statistical inference proceeds as in the linear regression model where coefficients are estimated by OLS
+
+  - $t$-tests
+  
+  - $F$-tests (or $\chi^2$-tests; the $\chi^2$-statistic is $q F$)
+  
+  - Confidence intervals
+  
+# Estimation of probit and logit models in R
+
+## Maximum Likelihood estimation of the probit model in R
+
+```{r, echo=TRUE, eval=TRUE, error=FALSE, warning=FALSE}
+# Probit regression
+probit <- glm(deny ~ pirat, 
+                     family = binomial(link = "probit"), 
+                     data = HMDA)
+summary(probit)
+```
+
+## Maximum Likelihood estimation of the logit model in R
+
+```{r, echo=TRUE, eval=TRUE, error=FALSE, warning=FALSE}
+# Probit regression
+logit <- glm(deny ~ pirat, 
+                     family = binomial(link = "logit"), 
+                     data = HMDA)
+summary(logit)
+```
+
+# Predicted probabilities and effects
+
+## Predicted probabilities and effects
+
+\begin{multline*}
+\widehat{\Pr}(deny_i = 1|pirat_i + \Delta) - \widehat{\Pr}(deny_i = 1|pirat_i) \\
+= \Phi(\hat{\beta}_0 + \hat{\beta}_1 [pirat_i + \Delta]) - \Phi(\hat{\beta}_0 + \hat{\beta}_1 pirat_i)
+\end{multline*}
+
+- Predicted probabilities and effects depend on $pirat_i$
+
+- Typically, report effects at sample mean of $pirat$, or for range of values of $pirat$
+
+## Predicted probabilities and effects in R
+
+```{r, echo=TRUE, eval=TRUE, error=FALSE, warning=FALSE}
+# Compute predictions for P/I ratio = 0.3, 0.4
+pred.prob <- predict(probit, 
+                     newdata = data.frame("pirat" = c(0.3, 0.4)),
+                     type = "response")
+
+# Compute difference in probabilities, print to console
+print(diff(pred.prob))
+```
+
+
+# Measures of fit for probit and logit models
+
+## Measures of fit for probit and logit regressions
+
+```{r, echo=FALSE, eval=TRUE, error=FALSE, warning=FALSE}
+plot(HMDA$pirat,HMDA$deny,     
+     xlab = "Payment-to-income ratio", # Label x-axis
+     ylab = "Mortgage application denial", # Label y-axis
+     col = "blue", # Make the data points blue
+     xlim = c(0, 3), # Range of x-values in plot
+     ylim = c(-0.4, 1.4)) # Range of y-values in plot
+# add horizontal dashed lines and text
+abline(h = 1, lty = 2, col = "gray")
+abline(h = 0, lty = 2, col = "gray")
+text(2.5, 0.9, cex = 0.8, "Mortgage denied")
+text(2.5, -0.1, cex= 0.8, "Mortgage approved")
+# Add regression line from linear probability model
+abline(lm1,
+       lwd = 3,
+       col = "blue")
+# Add regression line from probit model
+x <- seq(0, 3, 0.01)
+y.probit <- predict(probit, list(pirat = x), type = "response")
+lines(x, y.probit, lwd = 3, col = "red")
+# Add regression line from probit model
+y.logit <- predict(logit, list(pirat = x), type = "response")
+lines(x, y.logit, lwd = 3, col = "green")
+```
+
+## Fraction correctly predicted
+
+- Prediction rule:
+
+  $$\tilde{deny}_i = \left\{ 
+  \begin{array}{ll}
+  1 & \text{ if } \Phi(\hat{\beta}_0 + \hat{\beta}_1 pirat_i) \geq 0.5 \\
+  0 & \text{ if } \Phi(\hat{\beta}_0 + \hat{\beta}_1 pirat_i) < 0.5 \\
+  \end{array}
+  \right.$$
+  
+- Fraction correctly predicted is the fraction of $(deny_i,i=1,\ldots,n)$ where $\tilde{deny}_i = deny_i$
+
+```{r, echo=TRUE, eval=TRUE, error=FALSE, warning=FALSE}
+deny.pred <- (probit$fitted.values >= 0.5) # Predictions
+mean((deny.pred = HMDA$deny)) # Fraction correct predicted
+```
+
+## Pseudo-$R^2$
+
+- The **Pseudo-**$R^2$ measures the fit of the probit model using the likelihood function
+
+- Adding a regressor necessarily increases the value of the maximized likelihood $\mathcal{L}^{\max}$: measure fit by comparing likelihood values with and without regressors
+
+- The Pseudo-$R^2$ is 
+
+  $$\text{Pseudo-}R^2  = 1 - \frac{\ln(\mathcal{L}^{\max}_{\text{w/ regressors}})}{\ln(\mathcal{L}^{\max}_{\text{w/o regressors}})}$$
+
+## Computing Pseudo-$R^2$ in R
+
+```{r, echo=TRUE, eval=TRUE, error=FALSE, warning=FALSE}
+# compute the probit model w/o regressors
+probit0 <- glm(formula = deny ~ 1, 
+               family = binomial(link = "probit"), 
+               data = HMDA)
+# compute the pseudo-R2 using logLik() function
+pseudoR2 <- 1 - logLik(probit)[1]/logLik(probit0)[1]
+# Print pseudo-R2 to console
+print(pseudoR2)
+```
+
+# Summary
+
+## Summary
+
+- Probit and logit regression are nonlinear regression models of the probability that a binary dependent variable is 1
+
+- Estimation by Maximum Likelihood: choose coefficient values that are "most likely" to have produced the sample used for estimation
+
+- Statistical inference based on estimated coefficients is standard
+
+- Measures of fit include fraction correctly predicted and the Pseudo-$R^2$

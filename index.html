@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title>Regression with a binary dependent variable</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="index_files/reveal.js-3.3.0.1/css/reveal.css"/>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="index_files/reveal.js-3.3.0.1/css/theme/solarized.css" id="theme">
+
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+
+    <link rel="stylesheet" href="mystyle.css"/>
+
+<!-- Printing and PDF exports -->
+<script id="paper-css" type="application/dynamic-css">
+
+/* Default Print Stylesheet Template
+   by Rob Glazebrook of CSSnewbie.com
+   Last Updated: June 4, 2008
+
+   Feel free (nay, compelled) to edit, append, and
+   manipulate this file as you see fit. */
+
+
+@media print {
+
+	/* SECTION 1: Set default width, margin, float, and
+	   background. This prevents elements from extending
+	   beyond the edge of the printed page, and prevents
+	   unnecessary background images from printing */
+	html {
+		background: #fff;
+		width: auto;
+		height: auto;
+		overflow: visible;
+	}
+	body {
+		background: #fff;
+		font-size: 20pt;
+		width: auto;
+		height: auto;
+		border: 0;
+		margin: 0 5%;
+		padding: 0;
+		overflow: visible;
+		float: none !important;
+	}
+
+	/* SECTION 2: Remove any elements not needed in print.
+	   This would include navigation, ads, sidebars, etc. */
+	.nestedarrow,
+	.controls,
+	.fork-reveal,
+	.share-reveal,
+	.state-background,
+	.reveal .progress,
+	.reveal .backgrounds {
+		display: none !important;
+	}
+
+	/* SECTION 3: Set body font face, size, and color.
+	   Consider using a serif font for readability. */
+	body, p, td, li, div {
+		font-size: 20pt!important;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		color: #000;
+	}
+
+	/* SECTION 4: Set heading font face, sizes, and color.
+	   Differentiate your headings from your body text.
+	   Perhaps use a large sans-serif for distinction. */
+	h1,h2,h3,h4,h5,h6 {
+		color: #000!important;
+		height: auto;
+		line-height: normal;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		text-shadow: 0 0 0 #000 !important;
+		text-align: left;
+		letter-spacing: normal;
+	}
+	/* Need to reduce the size of the fonts for printing */
+	h1 { font-size: 28pt !important;  }
+	h2 { font-size: 24pt !important; }
+	h3 { font-size: 22pt !important; }
+	h4 { font-size: 22pt !important; font-variant: small-caps; }
+	h5 { font-size: 21pt !important; }
+	h6 { font-size: 20pt !important; font-style: italic; }
+
+	/* SECTION 5: Make hyperlinks more usable.
+	   Ensure links are underlined, and consider appending
+	   the URL to the end of the link for usability. */
+	a:link,
+	a:visited {
+		color: #000 !important;
+		font-weight: bold;
+		text-decoration: underline;
+	}
+	/*
+	.reveal a:link:after,
+	.reveal a:visited:after {
+		content: " (" attr(href) ") ";
+		color: #222 !important;
+		font-size: 90%;
+	}
+	*/
+
+
+	/* SECTION 6: more reveal.js specific additions by @skypanther */
+	ul, ol, div, p {
+		visibility: visible;
+		position: static;
+		width: auto;
+		height: auto;
+		display: block;
+		overflow: visible;
+		margin: 0;
+		text-align: left !important;
+	}
+	.reveal pre,
+	.reveal table {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.reveal pre code {
+		padding: 20px;
+		border: 1px solid #ddd;
+	}
+	.reveal blockquote {
+		margin: 20px 0;
+	}
+	.reveal .slides {
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 0 !important;
+		zoom: 1 !important;
+
+		overflow: visible !important;
+		display: block !important;
+
+		text-align: left !important;
+		-webkit-perspective: none;
+		   -moz-perspective: none;
+		    -ms-perspective: none;
+		        perspective: none;
+
+		-webkit-perspective-origin: 50% 50%;
+		   -moz-perspective-origin: 50% 50%;
+		    -ms-perspective-origin: 50% 50%;
+		        perspective-origin: 50% 50%;
+	}
+	.reveal .slides section {
+		visibility: visible !important;
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+		display: block !important;
+		overflow: visible !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 60px 20px !important;
+		z-index: auto !important;
+
+		opacity: 1 !important;
+
+		page-break-after: always !important;
+
+		-webkit-transform-style: flat !important;
+		   -moz-transform-style: flat !important;
+		    -ms-transform-style: flat !important;
+		        transform-style: flat !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+
+		-webkit-transition: none !important;
+		   -moz-transition: none !important;
+		    -ms-transition: none !important;
+		        transition: none !important;
+	}
+	.reveal .slides section.stack {
+		padding: 0 !important;
+	}
+	.reveal section:last-of-type {
+		page-break-after: avoid !important;
+	}
+	.reveal section .fragment {
+		opacity: 1 !important;
+		visibility: visible !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+	}
+	.reveal section img {
+		display: block;
+		margin: 15px 0px;
+		background: rgba(255,255,255,1);
+		border: 1px solid #666;
+		box-shadow: none;
+	}
+
+	.reveal section small {
+		font-size: 0.8em;
+	}
+
+}  
+</script>
+
+
+<script id="pdf-css" type="application/dynamic-css">
+    
+/**
+ * This stylesheet is used to print reveal.js
+ * presentations to PDF.
+ *
+ * https://github.com/hakimel/reveal.js#pdf-export
+ */
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+
+body {
+	margin: 0 auto !important;
+	border: 0;
+	padding: 0;
+	float: none !important;
+	overflow: visible;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Remove any elements not needed in print. */
+.nestedarrow,
+.reveal .controls,
+.reveal .progress,
+.reveal .playback,
+.reveal.overview,
+.fork-reveal,
+.share-reveal,
+.state-background {
+	display: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-shadow: 0 0 0 #000 !important;
+}
+
+.reveal pre code {
+	overflow: hidden !important;
+	font-family: Courier, 'Courier New', monospace !important;
+}
+
+ul, ol, div, p {
+	visibility: visible;
+	position: static;
+	width: auto;
+	height: auto;
+	display: block;
+	overflow: visible;
+	margin: auto;
+}
+.reveal {
+	width: auto !important;
+	height: auto !important;
+	overflow: hidden !important;
+}
+.reveal .slides {
+	position: static;
+	width: 100%;
+	height: auto;
+
+	left: auto;
+	top: auto;
+	margin: 0 !important;
+	padding: 0 !important;
+
+	overflow: visible;
+	display: block;
+
+	-webkit-perspective: none;
+	   -moz-perspective: none;
+	    -ms-perspective: none;
+	        perspective: none;
+
+	-webkit-perspective-origin: 50% 50%; /* there isn't a none/auto value but 50-50 is the default */
+	   -moz-perspective-origin: 50% 50%;
+	    -ms-perspective-origin: 50% 50%;
+	        perspective-origin: 50% 50%;
+}
+
+.reveal .slides section {
+	page-break-after: always !important;
+
+	visibility: visible !important;
+	position: relative !important;
+	display: block !important;
+	position: relative !important;
+
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 1px;
+
+	opacity: 1 !important;
+
+	-webkit-transform-style: flat !important;
+	   -moz-transform-style: flat !important;
+	    -ms-transform-style: flat !important;
+	        transform-style: flat !important;
+
+	-webkit-transform: none !important;
+	   -moz-transform: none !important;
+	    -ms-transform: none !important;
+	        transform: none !important;
+}
+
+.reveal section.stack {
+	margin: 0 !important;
+	padding: 0 !important;
+	page-break-after: avoid !important;
+	height: auto !important;
+	min-height: auto !important;
+}
+
+.reveal img {
+	box-shadow: none;
+}
+
+.reveal .roll {
+	overflow: visible;
+	line-height: 1em;
+}
+
+/* Slide backgrounds are placed inside of their slide when exporting to PDF */
+.reveal section .slide-background {
+	display: block !important;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: -1;
+}
+
+/* All elements should be above the slide-background */
+.reveal section>* {
+	position: relative;
+	z-index: 1;
+}
+
+/* Display slide speaker notes when 'showNotes' is enabled */
+.reveal .speaker-notes-pdf {
+	display: block;
+	width: 100%;
+	max-height: none;
+	left: auto;
+	top: auto;
+	z-index: 100;
+}
+
+/* Display slide numbers when 'slideNumber' is enabled */
+.reveal .slide-number-pdf {
+	display: block;
+	position: absolute;
+	font-size: 14px;
+}
+
+</script>
+
+
+<script>
+var style = document.createElement( 'style' );
+style.type = 'text/css';
+var style_script_id = window.location.search.match( /print-pdf/gi ) ? 'pdf-css' : 'paper-css';
+var style_script = document.getElementById(style_script_id).text;
+style.innerHTML = style_script;
+document.getElementsByTagName('head')[0].appendChild(style);
+</script>
+
+    <link href="index_files/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+    <link href="index_files/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+    <script src="index_files/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+    <script src="index_files/plotly-binding-4.9.2.1/plotly.js"></script>
+    <script src="index_files/typedarray-0.1/typedarray.min.js"></script>
+    <script src="index_files/jquery-1.11.3/jquery.min.js"></script>
+    <link href="index_files/crosstalk-1.1.0.1/css/crosstalk.css" rel="stylesheet" />
+    <script src="index_files/crosstalk-1.1.0.1/js/crosstalk.min.js"></script>
+    <link href="index_files/plotly-htmlwidgets-css-1.52.2/plotly-htmlwidgets.css" rel="stylesheet" />
+    <script src="index_files/plotly-main-1.52.2/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+
+<section class="slide level2">
+
+<section>
+<h1>
+Regression with a binary dependent variable
+</h1>
+<p>Based on Stock and Watson, ch. 11</p>
+<p><br></p>
+<h2>
+<a href="mailto:jesper.bagger@rhul.ac.uk">Jesper Bagger</a>
+</h2>
+<h3>
+EC3133 | Royal Holloway | 2020/21
+</h3>
+</section>
+</section>
+<section id="outline" class="slide level2">
+<h2>Outline</h2>
+<ol type="1">
+<li><p>Regression with a binary dependent variable</p></li>
+<li><p>The Maximum Likelihood estimator</p></li>
+<li><p>Estimation of probit and logit models in R</p></li>
+<li><p>Predicted probabilities and effects</p></li>
+<li><p>Measures of fit for probit and logit regressions</p></li>
+</ol>
+</section>
+<section><section id="regression-with-a-binary-dependent-variable" class="title-slide slide level1"><h1>Regression with a binary dependent variable</h1></section><section id="mortgage-application-denial-and-payment-to-income-ratio" class="slide level2">
+<h2>Mortgage application denial and payment-to-income ratio</h2>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-2-1.png" /><!-- --></p>
+</section><section id="a-probability-model" class="slide level2">
+<h2>A probability model</h2>
+<ul>
+<li><p>Suppuse <span class="math inline">\(deny_i\)</span> is a binary variable:</p>
+<p><span class="math display">\[deny_i = \left\{ 
+           \begin{array}{ll}
+           1 &amp; \text{ if application denied,} \\
+           0 &amp; \text{ if application approved,}
+           \end{array}
+           \right.\]</span></p>
+<p>and let <span class="math inline">\(pirat_i\)</span> be the payment-to-income ratio.</p></li>
+<li><p>The expectation on <span class="math inline">\(deny_i\)</span> is a probability</p>
+<p><span class="math display">\[\mathrm{E}(deny_i|pirat_i) = \Pr(deny_i = 1|pirat_i)\]</span></p></li>
+<li><p>Different regression functions gives rise to different models of <span class="math inline">\(\Pr(deny_i = 1|pirat_i)\)</span></p></li>
+</ul>
+</section><section id="the-linear-probability-model" class="slide level2">
+<h2>The linear probability model</h2>
+<p><span class="math display">\[\Pr(deny_i = 1|pirat_i) = \beta_0 + \beta_1 pirat_i\]</span></p>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-3-1.png" /><!-- --></p>
+</section><section id="the-probit-model" class="slide level2">
+<h2>The probit model</h2>
+<p><span class="math display">\[\Pr(deny_i = 1|pirat_i) = \Phi(\beta_0 + \beta_1 pirat_i)\]</span></p>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-4-1.png" /><!-- --></p>
+</section><section id="the-logit-model" class="slide level2">
+<h2>The logit model</h2>
+<p><span class="math display">\[\Pr(deny_i = 1|pirat_i) = \Lambda(\beta_0 + \beta_1 pirat_i)\]</span></p>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-5-1.png" /><!-- --></p>
+</section><section id="nonlinear-regression-models" class="slide level2">
+<h2>Nonlinear regression models</h2>
+<ul>
+<li><p>The probit and logit regression models are examples of <strong>nonlinear regression models</strong></p></li>
+<li><p>Effect on <span class="math inline">\(\Pr(deny_i = 1|pirat_i)\)</span> from <span class="math inline">\(pirat_i\)</span>-change by <span class="math inline">\(\Delta\)</span>:</p>
+<p><span class="math display">\[\begin{multline*}
+\Pr(deny_i = 1|pirat_i + \Delta) - \Pr(deny_i = 1|pirat_i) \\
+= \Phi(\beta_0 + \beta_1 [pirat_i + \Delta]) - \Phi(\beta_0 + \beta_1 pirat_i)
+\end{multline*}\]</span></p></li>
+<li><p>OLS is no longer applicable; instead, rely on <strong>Nonlinear Least Squares</strong> or <strong>Maximum Likelihood estimation</strong></p></li>
+</ul>
+</section></section>
+<section><section id="the-maximum-likelihood-estimator" class="title-slide slide level1"><h1>The Maximum Likelihood estimator</h1></section><section id="the-probit-likelihood-function" class="slide level2">
+<h2>The probit likelihood function</h2>
+<p><span class="math display">\[\Pr(deny_i = 1|pirat_i) = \Phi(\beta_0 + \beta_1 pirat_i)\]</span></p>
+<ul>
+<li><p>What is the probability of obtaining the actual sample with <span class="math inline">\(n\)</span> observations, <span class="math inline">\((deny_i,pirat_i;i=1,\ldots,n)\)</span>?</p>
+<p><span class="math display">\[\prod_{i=1}^n \Phi(\beta_0 + \beta_1 pirat_i)^{deny_i} \left[1-\Phi(\beta_0 + \beta_1 pirat_i)\right]^{1-deny_i}\]</span></p></li>
+<li><p>Different values of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> give different probabilities of obtaining the sample that was actually obtained</p></li>
+<li><p>Call the probability of obtaining the actual sample as a function of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> the <strong>likelihood function</strong></p></li>
+<li><p>Logit likelihood function obtains by replacing <span class="math inline">\(\Phi(\cdot)\)</span> by <span class="math inline">\(\Lambda(\cdot)\)</span></p></li>
+</ul>
+</section><section id="the-maximum-likelihood-estimators-of-beta_0-and-beta_1" class="slide level2">
+<h2>The Maximum Likelihood estimators of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span></h2>
+<ul>
+<li><p>The Maximum Likelihood estimators (MLEs) of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>, called <span class="math inline">\(\hat{\beta}_{0,ML}\)</span> and <span class="math inline">\(\hat{\beta}_{1,ML}\)</span>, maximizes the likelihood function</p></li>
+<li><p>Hence, <span class="math inline">\(\hat{\beta}_{0,ML}\)</span> and <span class="math inline">\(\hat{\beta}_{1,ML}\)</span> are the coefficient values “most likely” to have produced the sample!</p></li>
+<li><p>Maximization of the (log-)likelihood function by sophisticated numerical optimization routines</p></li>
+</ul>
+</section><section id="the-probit-log-likelihood-function" class="slide level2">
+<h2>The probit log-likelihood function</h2>
+<div id="htmlwidget-940b2479cf9bfd5be33f" style="width:100%;height:576px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-940b2479cf9bfd5be33f">{"x":{"visdat":{"14bd160ee8791":["function () ","plotlyVisDat"]},"cur_data":"14bd160ee8791","attrs":{"14bd160ee8791":{"z":{},"x":[-2.3,-2.28421052631579,-2.26842105263158,-2.25263157894737,-2.23684210526316,-2.22105263157895,-2.20526315789474,-2.18947368421053,-2.17368421052632,-2.15789473684211,-2.14210526315789,-2.12631578947368,-2.11052631578947,-2.09473684210526,-2.07894736842105,-2.06315789473684,-2.04736842105263,-2.03157894736842,-2.01578947368421,-2],"y":[2.8,2.82105263157895,2.84210526315789,2.86315789473684,2.88421052631579,2.90526315789474,2.92631578947368,2.94736842105263,2.96842105263158,2.98947368421053,3.01052631578947,3.03157894736842,3.05263157894737,3.07368421052632,3.09473684210526,3.11578947368421,3.13684210526316,3.15789473684211,3.17894736842105,3.2],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface","contours":{"z":{"show":true,"usecolormap":true,"highlightcolor":"#ff0000","project":{"z":true}}},"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"camera":{"eye":{"x":1.87,"y":0.88,"z":-0.64}},"xaxis":{"title":"Intercept, beta_0"},"yaxis":{"title":"Slope, beta_1"},"zaxis":{"title":"Log-likelihood"}},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"showSendToCloud":false},"data":[{"colorbar":{"title":"ll","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666653","rgba(70,19,97,1)"],["0.0833333333333339","rgba(72,32,111,1)"],["0.124999999999999","rgba(71,45,122,1)"],["0.166666666666668","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.250000000000002","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333332","rgba(49,104,142,1)"],["0.375000000000001","rgba(46,114,142,1)"],["0.416666666666666","rgba(42,123,142,1)"],["0.458333333333335","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666665","rgba(33,154,138,1)"],["0.583333333333334","rgba(39,164,133,1)"],["0.624999999999999","rgba(47,174,127,1)"],["0.666666666666668","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.749999999999998","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333332","rgba(147,214,70,1)"],["0.875000000000001","rgba(172,220,52,1)"],["0.916666666666666","rgba(199,225,42,1)"],["0.958333333333335","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"z":[[-843.098385417733,-842.112688891522,-841.172193898552,-840.277078952524,-839.42752291653,-838.623705001193,-837.865804762297,-837.154002097887,-836.488477244832,-835.869410774824,-835.296983589821,-834.771376916909,-834.292772302592,-833.861351606506,-833.477296994552,-833.140790931461,-832.852016172795,-832.611155756395,-832.418392993282,-832.273911458044],[-841.077976652339,-840.182545581431,-839.332723701938,-838.528690127903,-837.770624305805,-837.058706012455,-836.393115352366,-835.774032754603,-835.201638969069,-834.676115062246,-834.197642412363,-833.766402703992,-833.382577922066,-833.04635034533,-832.757902539211,-832.51741734813,-832.325077887254,-832.181067533698,-832.08556991721,-832.038768910323],[-839.252341942012,-838.448096808482,-837.68986996583,-836.977841085842,-836.312190155658,-835.69309747542,-835.120743655394,-834.595309612556,-834.116976566627,-833.685926035543,-833.30233983036,-832.966400049586,-832.678289072941,-832.438189554546,-832.24628441554,-832.102756836147,-832.007790247188,-831.961568321056,-831.964274962173,-832.016094296947],[-837.623623934985,-836.911488951859,-836.245782705588,-835.626685382971,-835.054377468965,-834.529039744085,-834.050853281276,-833.619999442249,-833.236659873258,-832.901016500307,-832.613251523803,-832.373547412624,-832.18208689763,-832.039052964596,-831.944628846588,-831.898998015791,-831.902344174791,-831.954851247331,-832.056703368561,-832.208084874793],[-836.193975380818,-835.574878282126,-835.002621617679,-834.477386046467,-833.999352508332,-833.568702221128,-833.185616677357,-832.850277640238,-832.562867139243,-832.323567465049,-832.132561163932,-831.990031031591,-831.896160106407,-831.851131662134,-831.855129200041,-831.908336440507,-832.010937314087,-832.163115952059,-832.365056676475,-832.616943989729],[-834.965558652734,-834.440430482542,-833.962555600051,-833.532115093551,-833.149290314787,-832.814262875888,-832.527214645753,-832.28832774588,-832.097784545646,-831.95576765702,-831.862459928702,-831.818044439708,-831.822704492383,-831.876623604863,-831.979985502988,-832.132974111676,-832.335773545779,-832.588568100437,-832.891542240933,-833.244880592094],[-833.940545266618,-833.510320167203,-833.127762269491,-832.793053048144,-832.506374223815,-832.267907759832,-832.077835858344,-831.936340955916,-831.843605718558,-831.799813036197,-831.805146016577,-831.859787978605,-831.96392244513,-832.117733135183,-832.321403955666,-832.57511899252,-832.879062501385,-833.233418897753,-833.638372746664,-834.094108751933],[-833.121115397051,-832.786730396397,-832.500427476368,-832.26238845508,-832.072795379103,-831.931830519916,-831.839676369817,-831.796515637276,-831.802531241731,-831.857906307816,-831.962824159034,-832.11746831087,-832.322022463342,-832.576670493028,-832.881596444543,-833.23698452151,-833.643019077022,-834.099884603634,-834.607765722877,-835.166847174348],[-832.509457390792,-832.271852189568,-832.082744817164,-831.942317392259,-831.8507522444,-831.808231910228,-831.814939129155,-831.871056838485,-831.976768167972,-832.132256433827,-832.337705132152,-832.593297931835,-832.89921866689,-833.255651328265,-833.662780055126,-834.120789125633,-834.62986294723,-835.190186046464,-835.801943058348,-836.465318715315],[-832.107767278093,-831.967884036285,-831.876915145162,-831.83504298114,-831.842450113879,-831.899319302282,-832.005833489946,-832.16217580005,-832.368529529691,-832.625078143658,-832.932005267659,-833.289494680986,-833.697730308656,-834.156896213016,-834.667176584835,-835.228755733904,-835.841818079156,-836.506548138325,-837.223130517178,-837.991749898328],[-831.918248282234,-831.877031405594,-831.885146079688,-831.94277489594,-832.050100621367,-832.207306194356,-832.41457471989,-832.672089464213,-832.980033848949,-833.338591444652,-833.747945963818,-834.208281253353,-834.719781286501,-835.282630154266,-835.897012056325,-836.563111291451,-837.28111224748,-838.051199390825,-838.873557255577,-839.748370432204],[-831.943110327674,-832.001506254149,-832.109651514297,-832.267728871945,-832.475921248848,-832.734411720248,-833.043383509883,-833.403019984431,-833.813504647413,-834.275021132537,-834.787753196496,-835.351884711242,-835.967599655724,-836.635082107123,-837.354516231596,-838.126086274544,-838.949976550425,-839.826371432141,-840.755455340014,-841.737412730388],[-832.184569547195,-832.3435265335,-832.552651124271,-832.812126213285,-833.122134834587,-833.482860157827,-833.894485483055,-834.35719423496,-834.871169956554,-835.436596302316,-836.053657030794,-836.722535996682,-837.443417142381,-838.21648448906,-839.041922127237,-839.919914206899,-840.85064492718,-841.834298525625,-842.871059267061,-843.9611114321],[-832.644847788421,-832.905315696918,-833.216369873812,-833.578193300571,-833.990969081272,-834.454880437736,-834.970110704112,-835.536843320903,-836.155261828457,-836.825549859907,-837.547891133585,-838.322469444914,-839.149468657796,-840.029072695515,-840.96146553116,-841.946831177611,-842.985353677089,-844.077217090313,-845.222605485267,-846.421702925635],[-833.326172120096,-833.689102206126,-834.103037523306,-834.568161098743,-835.08465606452,-835.65270565263,-836.272493189351,-836.944202089077,-837.668015847609,-838.444118034904,-839.272692287311,-840.153922299283,-841.087991814609,-842.075084617152,-843.115384521143,-844.209075361031,-845.356340980923,-846.557365223634,-847.812331919384,-849.121424874148],[-834.230774338484,-834.697119038314,-835.21488813701,-835.784264665507,-836.405431742122,-837.078572567284,-837.803870417714,-838.58150864006,-839.411670643996,-840.294539894793,-841.230299905376,-842.219134227879,-843.261226444708,-844.35676015915,-845.505918985526,-846.708886538929,-847.965846424557,-849.276982226679,-850.642477497251,-852.062515744219],[-835.360890474264,-835.931603193801,-836.554159591544,-837.228742660715,-837.955535464374,-838.734721129947,-839.566482843212,-840.45100384175,-841.388467407864,-842.379056860968,-843.422955549483,-844.520346842232,-845.671414119363,-846.876340762818,-848.135310146368,-849.448505625244,-850.81611052538,-852.238308132294,-853.715281679654,-855.247214337521],[-836.718760300281,-837.394795204694,-838.123093085522,-838.903836857036,-839.73720948585,-840.623393985264,-841.562573409064,-842.55493084479,-843.600649406476,-844.699912226882,-845.852902449223,-847.059803218419,-848.320797671884,-849.636068929868,-851.005800085386,-852.430174193747,-853.909374261718,-855.443583236343,-857.032983993449,-858.677759325865],[-838.306626840507,-839.088938644907,-839.923932650697,-840.811791652271,-841.752698478949,-842.746835989128,-843.794387063906,-844.895534600175,-846.050461503192,-847.25935067865,-848.522385024263,-849.839747420876,-851.211620723121,-852.638187749656,-854.119631272985,-855.656134008906,-857.2478786056,-858.8950476324,-860.597823568253,-862.356388789921],[-840.126735880557,-841.016279641879,-841.958924664926,-842.954853583645,-844.004249049565,-845.107293725776,-846.264170280375,-847.475061379389,-848.740149679192,-850.059617818423,-851.433648409425,-852.862424029233,-854.346127210111,-855.884940429685,-857.479046100673,-859.12862656026,-860.83386405913,-862.594940750182,-864.412038676971,-866.285339761893]],"x":[-2.3,-2.28421052631579,-2.26842105263158,-2.25263157894737,-2.23684210526316,-2.22105263157895,-2.20526315789474,-2.18947368421053,-2.17368421052632,-2.15789473684211,-2.14210526315789,-2.12631578947368,-2.11052631578947,-2.09473684210526,-2.07894736842105,-2.06315789473684,-2.04736842105263,-2.03157894736842,-2.01578947368421,-2],"y":[2.8,2.82105263157895,2.84210526315789,2.86315789473684,2.88421052631579,2.90526315789474,2.92631578947368,2.94736842105263,2.96842105263158,2.98947368421053,3.01052631578947,3.03157894736842,3.05263157894737,3.07368421052632,3.09473684210526,3.11578947368421,3.13684210526316,3.15789473684211,3.17894736842105,3.2],"type":"surface","contours":{"z":{"show":true,"usecolormap":true,"highlightcolor":"#ff0000","project":{"z":true}}},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</section><section id="statistical-inference-based-on-mle" class="slide level2">
+<h2>Statistical inference based on MLE</h2>
+<ul>
+<li><p>The MLEs of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> are consistent and asymptotically normal if the probability model is correctly specified; in particular if it includes <strong>all</strong> relevant regressors,</p></li>
+<li><p>Statistical inference proceeds as in the linear regression model where coefficients are estimated by OLS</p>
+<ul>
+<li><p><span class="math inline">\(t\)</span>-tests</p></li>
+<li><p><span class="math inline">\(F\)</span>-tests (or <span class="math inline">\(\chi^2\)</span>-tests; the <span class="math inline">\(\chi^2\)</span>-statistic is <span class="math inline">\(q F\)</span>)</p></li>
+<li><p>Confidence intervals</p></li>
+</ul></li>
+</ul>
+</section></section>
+<section><section id="estimation-of-probit-and-logit-models-in-r" class="title-slide slide level1"><h1>Estimation of probit and logit models in R</h1></section><section id="maximum-likelihood-estimation-of-the-probit-model-in-r" class="slide level2">
+<h2>Maximum Likelihood estimation of the probit model in R</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Probit regression</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>probit &lt;-<span class="st"> </span><span class="kw">glm</span>(deny <span class="op">~</span><span class="st"> </span>pirat, </span>
+<span id="cb1-3"><a href="#cb1-3"></a>                     <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;probit&quot;</span>), </span>
+<span id="cb1-4"><a href="#cb1-4"></a>                     <span class="dt">data =</span> HMDA)</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">summary</span>(probit)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## glm(formula = deny ~ pirat, family = binomial(link = &quot;probit&quot;), 
+##     data = HMDA)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.4140  -0.5281  -0.4750  -0.3900   2.8159  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  -2.1941     0.1378 -15.927  &lt; 2e-16 ***
+## pirat         2.9679     0.3858   7.694 1.43e-14 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1744.2  on 2379  degrees of freedom
+## Residual deviance: 1663.6  on 2378  degrees of freedom
+## AIC: 1667.6
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+</section><section id="maximum-likelihood-estimation-of-the-logit-model-in-r" class="slide level2">
+<h2>Maximum Likelihood estimation of the logit model in R</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Probit regression</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>logit &lt;-<span class="st"> </span><span class="kw">glm</span>(deny <span class="op">~</span><span class="st"> </span>pirat, </span>
+<span id="cb3-3"><a href="#cb3-3"></a>                     <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;logit&quot;</span>), </span>
+<span id="cb3-4"><a href="#cb3-4"></a>                     <span class="dt">data =</span> HMDA)</span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="kw">summary</span>(logit)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## glm(formula = deny ~ pirat, family = binomial(link = &quot;logit&quot;), 
+##     data = HMDA)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.6583  -0.5255  -0.4705  -0.3864   2.7624  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  -4.0284     0.2686 -14.999  &lt; 2e-16 ***
+## pirat         5.8845     0.7336   8.021 1.05e-15 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1744.2  on 2379  degrees of freedom
+## Residual deviance: 1660.2  on 2378  degrees of freedom
+## AIC: 1664.2
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+</section></section>
+<section><section id="predicted-probabilities-and-effects" class="title-slide slide level1"><h1>Predicted probabilities and effects</h1></section><section id="predicted-probabilities-and-effects-1" class="slide level2">
+<h2>Predicted probabilities and effects</h2>
+<p><span class="math display">\[\begin{multline*}
+\widehat{\Pr}(deny_i = 1|pirat_i + \Delta) - \widehat{\Pr}(deny_i = 1|pirat_i) \\
+= \Phi(\hat{\beta}_0 + \hat{\beta}_1 [pirat_i + \Delta]) - \Phi(\hat{\beta}_0 + \hat{\beta}_1 pirat_i)
+\end{multline*}\]</span></p>
+<ul>
+<li><p>Predicted probabilities and effects depend on <span class="math inline">\(pirat_i\)</span></p></li>
+<li><p>Typically, report effects at sample mean of <span class="math inline">\(pirat\)</span>, or for range of values of <span class="math inline">\(pirat\)</span></p></li>
+</ul>
+</section><section id="predicted-probabilities-and-effects-in-r" class="slide level2">
+<h2>Predicted probabilities and effects in R</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Compute predictions for P/I ratio = 0.3, 0.4</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>pred.prob &lt;-<span class="st"> </span><span class="kw">predict</span>(probit, </span>
+<span id="cb5-3"><a href="#cb5-3"></a>                     <span class="dt">newdata =</span> <span class="kw">data.frame</span>(<span class="st">&quot;pirat&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.3</span>, <span class="fl">0.4</span>)),</span>
+<span id="cb5-4"><a href="#cb5-4"></a>                     <span class="dt">type =</span> <span class="st">&quot;response&quot;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5"></a></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="co"># Compute difference in probabilities, print to console</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="kw">print</span>(<span class="kw">diff</span>(pred.prob))</span></code></pre></div>
+<pre><code>##          2 
+## 0.06081433</code></pre>
+</section></section>
+<section><section id="measures-of-fit-for-probit-and-logit-models" class="title-slide slide level1"><h1>Measures of fit for probit and logit models</h1></section><section id="measures-of-fit-for-probit-and-logit-regressions" class="slide level2">
+<h2>Measures of fit for probit and logit regressions</h2>
+<p><img data-src="index_files/figure-revealjs/unnamed-chunk-10-1.png" /><!-- --></p>
+</section><section id="fraction-correctly-predicted" class="slide level2">
+<h2>Fraction correctly predicted</h2>
+<ul>
+<li><p>Prediction rule:</p>
+<p><span class="math display">\[\tilde{deny}_i = \left\{ 
+\begin{array}{ll}
+1 &amp; \text{ if } \Phi(\hat{\beta}_0 + \hat{\beta}_1 pirat_i) \geq 0.5 \\
+0 &amp; \text{ if } \Phi(\hat{\beta}_0 + \hat{\beta}_1 pirat_i) &lt; 0.5 \\
+\end{array}
+\right.\]</span></p></li>
+<li><p>Fraction correctly predicted is the fraction of <span class="math inline">\((deny_i,i=1,\ldots,n)\)</span> where <span class="math inline">\(\tilde{deny}_i = deny_i\)</span></p></li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>deny.pred &lt;-<span class="st"> </span>(probit<span class="op">$</span>fitted.values <span class="op">&gt;=</span><span class="st"> </span><span class="fl">0.5</span>) <span class="co"># Predictions</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">mean</span>((<span class="dt">deny.pred =</span> HMDA<span class="op">$</span>deny)) <span class="co"># Fraction correct predicted</span></span></code></pre></div>
+<pre><code>## [1] 0.1197479</code></pre>
+</section><section id="pseudo-r2" class="slide level2">
+<h2>Pseudo-<span class="math inline">\(R^2\)</span></h2>
+<ul>
+<li><p>The <strong>Pseudo-</strong><span class="math inline">\(R^2\)</span> measures the fit of the probit model using the likelihood function</p></li>
+<li><p>Adding a regressor necessarily increases the value of the maximized likelihood <span class="math inline">\(\mathcal{L}^{\max}\)</span>: measure fit by comparing likelihood values with and without regressors</p></li>
+<li><p>The Pseudo-<span class="math inline">\(R^2\)</span> is</p>
+<p><span class="math display">\[\text{Pseudo-}R^2  = 1 - \frac{\ln(\mathcal{L}^{\max}_{\text{w/ regressors}})}{\ln(\mathcal{L}^{\max}_{\text{w/o regressors}})}\]</span></p></li>
+</ul>
+</section><section id="computing-pseudo-r2-in-r" class="slide level2">
+<h2>Computing Pseudo-<span class="math inline">\(R^2\)</span> in R</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># compute the probit model w/o regressors</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>probit0 &lt;-<span class="st"> </span><span class="kw">glm</span>(<span class="dt">formula =</span> deny <span class="op">~</span><span class="st"> </span><span class="dv">1</span>, </span>
+<span id="cb9-3"><a href="#cb9-3"></a>               <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;probit&quot;</span>), </span>
+<span id="cb9-4"><a href="#cb9-4"></a>               <span class="dt">data =</span> HMDA)</span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="co"># compute the pseudo-R2 using logLik() function</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a>pseudoR2 &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">logLik</span>(probit)[<span class="dv">1</span>]<span class="op">/</span><span class="kw">logLik</span>(probit0)[<span class="dv">1</span>]</span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co"># Print pseudo-R2 to console</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="kw">print</span>(pseudoR2)</span></code></pre></div>
+<pre><code>## [1] 0.04620301</code></pre>
+</section></section>
+<section><section id="summary" class="title-slide slide level1"><h1>Summary</h1></section><section id="summary-1" class="slide level2">
+<h2>Summary</h2>
+<ul>
+<li><p>Probit and logit regression are nonlinear regression models of the probability that a binary dependent variable is 1</p></li>
+<li><p>Estimation by Maximum Likelihood: choose coefficient values that are “most likely” to have produced the sample used for estimation</p></li>
+<li><p>Statistical inference based on estimated coefficients is standard</p></li>
+<li><p>Measures of fit include fraction correctly predicted and the Pseudo-<span class="math inline">\(R^2\)</span></p></li>
+</ul>
+</section></section>
+    </div>
+  </div>
+
+  <script src="index_files/reveal.js-3.3.0.1/lib/js/head.min.js"></script>
+  <script src="index_files/reveal.js-3.3.0.1/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Display the page number of the current slide
+        slideNumber: true,
+        // Push each slide change to the browser history
+        history: true,
+        // Vertical centering of slides
+        center: true,
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+        // Transition style
+        transition: 'none', // none/fade/slide/convex/concave/zoom
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'none', // none/fade/slide/convex/concave/zoom
+
+        menu: {
+          numbers: true,
+          custom: false,
+          themes: false,
+          transitions: false
+        },
+
+
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'index_files/reveal.js-3.3.0.1/plugin/menu/menu.js', async: true },
+        ]
+      });
+    </script>
+  <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+
+<script>
+  (function() {
+    if (window.jQuery) {
+      Reveal.addEventListener( 'slidechanged', function(event) {  
+        window.jQuery(event.previousSlide).trigger('hidden');
+        window.jQuery(event.currentSlide).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+
+  </body>
+</html>
