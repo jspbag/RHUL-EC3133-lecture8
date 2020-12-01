@@ -265,7 +265,6 @@ fig <- fig %>% layout(
     yaxis=list(title='Slope, beta_1'),
     zaxis=list(title='Log-likelihood')))
 fig
-#persp(b0, b1, ll)
 ```
 
 ## Statistical inference based on MLE
@@ -295,7 +294,7 @@ summary(probit)
 ## Maximum Likelihood estimation of the logit model in R
 
 ```{r, echo=TRUE, eval=TRUE, error=FALSE, warning=FALSE}
-# Probit regression
+# Logit regression
 logit <- glm(deny ~ pirat, 
                      family = binomial(link = "logit"), 
                      data = HMDA)
