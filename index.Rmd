@@ -233,11 +233,11 @@ $$\Pr(deny_i = 1|pirat_i) = \Phi(\beta_0 + \beta_1 pirat_i)$$
 lik.fct <- function(b0,b1){
             sum(log(pnorm(b0+b1*HMDA$pirat)^HMDA$deny*(1-pnorm(b0+b1*HMDA$pirat))^(1-HMDA$deny)))
 }
-b0 <- seq(-2.3, -2, length= 20)
-b1 <- seq(2.8, 3.2, length= 20)
+b0 <- seq(-2.3, -2, length= 500)
+b1 <- seq(2.8, 3.2, length= 500)
 ll <- outer(b0, b1)
-for(i in 1:20) {
-  for(j in 1:20) {
+for(i in 1:500) {
+  for(j in 1:500) {
     ll[i,j] <- lik.fct(b0[i],b1[j])
   }
 }
